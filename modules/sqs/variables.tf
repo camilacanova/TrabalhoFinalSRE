@@ -6,3 +6,8 @@ variable "sqsname" {
   description = "nome da fila sqs"
   // required = true
 }
+
+variable "dlqname" {
+  description = "nome da fila sqs secundaria"
+  // required = true
+}

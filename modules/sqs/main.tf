@@ -5,16 +5,20 @@ locals {
   // using map
   context = {
     default = {
-      name = "${var.sqsname}-dev"
+      sqsname = "${var.sqsname}-dev"
+      dlqname = "${var.dlqname}-dev"
     }
     dev = {
-      name = "${var.sqsname}-dev"
+      sqsname = "${var.sqsname}-dev"
+      dlqname = "${var.dlqname}-dev"
     }
     homol = {
-      name = "${var.sqsname}-homol"
+      sqsname = "${var.sqsname}-homol"
+      dlqname = "${var.dlqname}-homol"
     }
     prod = {
-      name = "${var.sqsname}-prod"
+      sqsname = "${var.sqsname}-prod"
+      dlqname = "${var.dlqname}-prod"
     }
   }
   
@@ -36,8 +40,8 @@ provider "aws" {
     region = "${var.AWS_REGION}"
 }
 
-resource "aws_sqs_queue" "terraform_queue" {
-  name                      = "${lookup(local.context_variables, "name")}"
+resource "aws_sqs_queue" "terraform_queue_deadletter" {
+  name                      = "${lookup(local.context_variables, "dlqname")}"
   delay_seconds             = 90
   max_message_size          = 2048
   message_retention_seconds = 86400
@@ -51,6 +55,23 @@ resource "aws_sqs_queue" "terraform_queue" {
     Environment = "${local.env}"
   }
 }
+
+resource "aws_sqs_queue" "terraform_queue" {
+  name                      = "${lookup(local.context_variables, "sqsname")}"
+  delay_seconds             = 90
+  max_message_size          = 2048
+  message_retention_seconds = 86400
+  receive_wait_time_seconds = 10
+  redrive_policy = jsonencode({
+    deadLetterTargetArn = aws_sqs_queue.terraform_queue_deadletter.arn //redirecionamento
+    maxReceiveCount     = 4
+  })
+
+  tags = {
+    Environment = "${local.env}"
+  }
+}
+
 
 //ARN da fila sqs principal
 //ARN da fila sqs DLQ
