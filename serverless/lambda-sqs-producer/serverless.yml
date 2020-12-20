@@ -1,0 +1,31 @@
+service: lambda-sqs-producer
+
+frameworkVersion: '2'
+
+custom:
+  myStage: ${opt:stage, self:provider.stage}
+
+provider:
+  name: aws
+  runtime: python3.8
+  stage: dev
+  memorySize: 128
+  timeout: 300
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - sqs:ChangeMessageVisibility
+        - sqs:DeleteMessage
+        - sqs:ReceiveMessage
+        - sqs:SendMessage
+      Resource: "arn:aws:sqs:us-east-1:*:sqs-principal-${self:custom.myStage}"
+  environment:
+    sqs_url: "https://sqs.us-east-1.amazonaws.com/734443076237/sqs-principal-${self:custom.myStage}"
+  
+functions:
+  producerSQS:
+    handler: handler.handler
+    events:
+      - http:
+          path: inseresqs/{mensagem}
+          method: get
