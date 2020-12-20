@@ -1,24 +1,23 @@
 locals {
   env = "${terraform.workspace}"
-  
+  region = "${var.AWS_REGION}"
   // Isolate variables used for different workspaces
   // using map
   context = {
     default = {
       sqsname = "${var.sqsname}-dev"
       dlqname = "${var.dlqname}-dev"
+      snsname = "${var.snsname}-dev"
     }
     dev = {
       sqsname = "${var.sqsname}-dev"
       dlqname = "${var.dlqname}-dev"
-    }
-    homol = {
-      sqsname = "${var.sqsname}-homol"
-      dlqname = "${var.dlqname}-homol"
+      snsname = "${var.snsname}-dev"
     }
     prod = {
       sqsname = "${var.sqsname}-prod"
       dlqname = "${var.dlqname}-prod"
+      snsname = "${var.snsname}-prod"
     }
   }
   
@@ -37,7 +36,7 @@ terraform {
 }
 
 provider "aws" {
-    region = "${var.AWS_REGION}"
+    region = "${local.region}"
 }
 
 resource "aws_sqs_queue" "terraform_queue_deadletter" {
@@ -46,11 +45,7 @@ resource "aws_sqs_queue" "terraform_queue_deadletter" {
   max_message_size          = 2048
   message_retention_seconds = 86400
   receive_wait_time_seconds = 10
-  //redrive_policy = jsonencode({
-  //  deadLetterTargetArn = aws_sqs_queue.terraform_queue_deadletter.arn //redirecionamento
-  //  maxReceiveCount     = 4
-  //})
-
+  
   tags = {
     Environment = "${local.env}"
   }
@@ -72,17 +67,10 @@ resource "aws_sqs_queue" "terraform_queue" {
   }
 }
 
-
-//ARN da fila sqs principal
-//ARN da fila sqs DLQ
-//URL da fila sqs principal
-//ARN do SNS criado
-
-
-//resource "aws_sqs_queue" "terraform_queue" {
-//  count = 5
-//  name = "fila-criada-${count.index}"
-//  tags = {
-//    Environment = "production"
-//  }
-//}
+resource "aws_sns_topic" "sns_email" {
+  name = "${lookup(local.context_variables, "snsname")}"
+  
+  tags = {
+    Environment = "${local.env}"
+  }
+}

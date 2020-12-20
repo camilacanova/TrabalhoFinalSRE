@@ -11,3 +11,8 @@ variable "dlqname" {
   description = "nome da fila sqs secundaria"
   // required = true
 }
+
+variable "snsname" {
+  description = "nome do tópico sns"
+  // required = true
+}
