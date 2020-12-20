@@ -24,6 +24,13 @@ locals {
   context_variables = "${local.context[local.env]}"
 }
 
+// Creates a new local file with the given filename and content
+//resource "local_file" "test" {
+//  content     = "${local.env}"
+//  filename = "${path.module}/${lookup(local.context_variables, "name")}"
+//}
+
+
 terraform {
   required_version = ">= 0.12"
 }
