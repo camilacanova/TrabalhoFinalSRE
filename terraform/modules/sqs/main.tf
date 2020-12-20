@@ -24,13 +24,6 @@ locals {
   context_variables = "${local.context[local.env]}"
 }
 
-// Creates a new local file with the given filename and content
-//resource "local_file" "test" {
-//  content     = "${local.env}"
-//  filename = "${path.module}/${lookup(local.context_variables, "name")}"
-//}
-
-
 terraform {
   required_version = ">= 0.12"
 }
@@ -41,7 +34,7 @@ provider "aws" {
 
 resource "aws_sqs_queue" "terraform_queue_deadletter" {
   name                      = "${lookup(local.context_variables, "dlqname")}"
-  delay_seconds             = 90
+  delay_seconds             = 10
   max_message_size          = 2048
   message_retention_seconds = 86400
   receive_wait_time_seconds = 10
@@ -53,7 +46,7 @@ resource "aws_sqs_queue" "terraform_queue_deadletter" {
 
 resource "aws_sqs_queue" "terraform_queue" {
   name                      = "${lookup(local.context_variables, "sqsname")}"
-  delay_seconds             = 90
+  delay_seconds             = 10
   max_message_size          = 2048
   message_retention_seconds = 86400
   receive_wait_time_seconds = 10
